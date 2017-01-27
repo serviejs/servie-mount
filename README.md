@@ -1,4 +1,4 @@
-# Servie mount
+# Servie Mount
 
 [![NPM version][npm-image]][npm-url]
 [![NPM downloads][downloads-image]][downloads-url]
