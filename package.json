@@ -1,0 +1,56 @@
+{
+  "name": "servie-mount",
+  "version": "0.0.0",
+  "description": "Mount Servie middleware on a prefix",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "lint": "tslint \"src/**/*.ts\"",
+    "build": "rm -rf dist/ && tsc",
+    "specs": "jest --coverage",
+    "test": "npm run -s lint && npm run -s build && npm run -s specs",
+    "prepublish": "typings install && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/blakeembrey/node-servie-mount.git"
+  },
+  "keywords": [
+    "servie",
+    "mount",
+    "path",
+    "prefix",
+    "strip",
+    "route"
+  ],
+  "author": {
+    "name": "Blake Embrey",
+    "email": "hello@blakeembrey.com",
+    "url": "http://blakeembrey.me"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/blakeembrey/node-servie-mount/issues"
+  },
+  "homepage": "https://github.com/blakeembrey/node-servie-mount",
+  "devDependencies": {
+    "jest": "^18.1.0",
+    "rimraf": "^2.5.4",
+    "servie": "^0.2.0",
+    "throwback": "^2.0.0",
+    "tslint": "^4.3.1",
+    "tslint-config-standard": "^3.0.0",
+    "typescript": "^2.1.5",
+    "typings": "^2.1.0"
+  },
+  "peerDependencies": {
+    "servie": "^0.2.0"
+  },
+  "dependencies": {
+    "debug": "^2.6.0",
+    "path-to-regexp": "^1.7.0"
+  }
+}
