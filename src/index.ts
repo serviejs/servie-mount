@@ -5,13 +5,18 @@ import { format } from 'url'
 
 const log = debug('servie-mount')
 
+export interface RequestMounted {
+  mountPath: string
+  mountParams: string[]
+}
+
 export interface Options {
   sensitive?: boolean
 }
 
 export function mount <T extends Request> (
   prefix: pathToRegexp.Path,
-  fn: (req: T, done: () => Promise<Response>) => Promise<Response>,
+  fn: (req: T & RequestMounted, done: () => Promise<Response>) => Promise<Response>,
   options?: Options
 ) {
   const re = pathToRegexp(prefix, { end: false, sensitive: !!(options && options.sensitive) })
@@ -25,12 +30,15 @@ export function mount <T extends Request> (
     if (m) {
       const prevUrl = req.url
 
-      // Format the updated URL.
-      req.url = format(Object.assign({}, req.Url, { path: undefined, pathname: pathname.substr(m[0].length) || '/' }))
+      const url = format(Object.assign({}, req.Url, { path: undefined, pathname: pathname.substr(m[0].length) || '/' }))
+      const [mountPath, ...mountParams] = m
+
+      // Set mounted parameters on request.
+      const mountedReq = Object.assign(req, { url, mountPath, mountParams })
 
       debug(`enter ${prevUrl} -> ${req.url}`)
 
-      return fn(req, function () {
+      return fn(mountedReq, function () {
         debug(`leave ${prevUrl} -> ${req.url}`)
         req.url = prevUrl
         return next()
