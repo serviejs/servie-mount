@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/blakeembrey/node-servie-mount.git"
+    "url": "git://github.com/serviejs/servie-mount.git"
   },
   "keywords": [
     "servie",
@@ -33,9 +33,9 @@
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/blakeembrey/node-servie-mount/issues"
+    "url": "https://github.com/serviejs/servie-mount/issues"
   },
-  "homepage": "https://github.com/blakeembrey/node-servie-mount",
+  "homepage": "https://github.com/serviejs/servie-mount",
   "devDependencies": {
     "jest": "^18.1.0",
     "rimraf": "^2.5.4",
