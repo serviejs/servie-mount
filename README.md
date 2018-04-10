@@ -5,7 +5,7 @@
 [![Build status](https://img.shields.io/travis/serviejs/servie-mount.svg?style=flat)](https://travis-ci.org/serviejs/servie-mount)
 [![Test coverage](https://img.shields.io/coveralls/serviejs/servie-mount.svg?style=flat)](https://coveralls.io/r/serviejs/servie-mount?branch=master)
 
-> Mount Servie middleware on a prefix.
+> Mount Servie middleware on a path prefix.
 
 ## Installation
 

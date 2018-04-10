@@ -5,46 +5,52 @@ import { format } from 'url'
 
 const log = debug('servie-mount')
 
-export interface RequestMounted {
-  mountPath: string
-  mountParams: string[]
+export const mountPath = Symbol('servie-mount')
+
+export interface MountRequest {
+  [mountPath]: string[]
 }
 
 export interface Options {
   sensitive?: boolean
 }
 
-export function mount <T extends Request> (
+export function mount <T extends Request, U extends Response> (
   prefix: pathToRegexp.Path,
-  fn: (req: T & RequestMounted, done: () => Promise<Response>) => Promise<Response>,
-  options?: Options
+  fn: (req: T & MountRequest, done: () => Promise<U>) => Promise<U>,
+  options: Options = {}
 ) {
-  const re = pathToRegexp(prefix, { end: false, sensitive: !!(options && options.sensitive) })
+  const keys: pathToRegexp.Key[] = []
+  const re = pathToRegexp(prefix, keys, { end: false, sensitive: options.sensitive })
 
   log(`mount ${prefix} -> ${re}`)
 
-  return function (req: T, next: () => Promise<Response>) {
+  return function (req: T & { [mountPath]?: string[] }, next: () => Promise<U>) {
     const pathname = req.Url.pathname
-    const m = pathname && re.exec(pathname)
+    if (!pathname) return next()
 
-    if (m) {
-      const prevUrl = req.url
+    const match = re.exec(pathname)
+    if (!match) return next()
 
-      const url = format(Object.assign({}, req.Url, { path: undefined, pathname: pathname.substr(m[0].length) || '/' }))
-      const [mountPath, ...mountParams] = m
+    const prevUrl = req.url
+    const prevMountPath = req[mountPath]
 
-      // Set mounted parameters on request.
-      const mountedReq = Object.assign(req, { url, mountPath, mountParams })
+    req.url = format({
+      ...req.Url,
+      path: undefined,
+      pathname: pathname.substr(match[0].length) || '/'
+    })
 
-      debug(`enter ${prevUrl} -> ${req.url}`)
+    // Set mounted parameters on request.
+    const mountReq = Object.assign(req, { [mountPath]: Array.from(match) })
 
-      return fn(mountedReq, function () {
-        debug(`leave ${prevUrl} -> ${req.url}`)
-        req.url = prevUrl
-        return next()
-      })
-    }
+    debug(`enter ${prevUrl} -> ${req.url}`)
 
-    return next()
+    return fn(mountReq, function () {
+      debug(`leave ${prevUrl} -> ${req.url}`)
+      req.url = prevUrl
+      req[mountPath] = prevMountPath
+      return next()
+    })
   }
 }
