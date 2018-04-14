@@ -42,15 +42,15 @@
     "@types/node": "^9.6.2",
     "jest": "^22.4.3",
     "rimraf": "^2.5.4",
-    "servie": "^2.1.0",
-    "servie-finalhandler": "^1.0.0",
+    "servie": "^3.0.0",
+    "servie-finalhandler": "^1.1.0",
     "throwback": "^2.0.0",
     "tslint": "^5.9.1",
     "tslint-config-standard": "^7.0.0",
     "typescript": "^2.8.1"
   },
   "peerDependencies": {
-    "servie": "^2.1.0"
+    "servie": ">=2.1 <4"
   },
   "dependencies": {
     "debug": "^3.1.0",
