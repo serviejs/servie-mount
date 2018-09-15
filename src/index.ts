@@ -5,9 +5,11 @@ import { format } from 'url'
 
 const log = debug('servie-mount')
 
-export const mountPath = Symbol('servie-mount')
+export const mountPath = Symbol('mountPath')
+export const originalUrl = Symbol('originalUrl')
 
 export interface MountRequest {
+  [originalUrl]: string
   [mountPath]: string[]
 }
 
@@ -25,7 +27,7 @@ export function mount <T extends Request, U extends Response> (
 
   log(`mount ${prefix} -> ${re}`)
 
-  return function (req: T & { [mountPath]?: string[] }, next: () => Promise<U>) {
+  return function (req: T & Partial<MountRequest>, next: () => Promise<U>) {
     const pathname = req.Url.pathname
     if (!pathname) return next()
 
@@ -42,7 +44,10 @@ export function mount <T extends Request, U extends Response> (
     })
 
     // Set mounted parameters on request.
-    const mountReq = Object.assign(req, { [mountPath]: Array.from(match) })
+    const mountReq = Object.assign(req, {
+      [mountPath]: Array.from(match),
+      [originalUrl]: req[originalUrl] || prevUrl
+    })
 
     debug(`enter ${prevUrl} -> ${req.url}`)
 

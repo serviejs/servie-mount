@@ -1,12 +1,13 @@
 import { compose } from 'throwback'
 import { finalhandler } from 'servie-finalhandler'
-import { mount, mountPath, MountRequest } from './index'
+import { mount, mountPath, MountRequest, originalUrl } from './index'
 import { Request, Response } from 'servie'
 
 describe('servie-mount', () => {
   it('should rewrite the mounted path', () => {
     const urls: string[] = []
     const mountPaths: Array<string[]> = []
+    const originalUrls: Array<string> = []
 
     function fn (req: Request, next: () => Promise<Response>): Promise<Response> {
       urls.push(req.url)
@@ -16,6 +17,7 @@ describe('servie-mount', () => {
     function mountedFn (req: Request & MountRequest, next: () => Promise<Response>): Promise<Response> {
       urls.push(req.url)
       mountPaths.push(req[mountPath])
+      originalUrls.push(req[originalUrl])
       return next()
     }
 
@@ -41,6 +43,11 @@ describe('servie-mount', () => {
       expect(mountPaths).toEqual([
         ['/test'],
         ['/path']
+      ])
+
+      expect(originalUrls).toEqual([
+        '/test/path?test=true',
+        '/test/path?test=true'
       ])
     })
   })
