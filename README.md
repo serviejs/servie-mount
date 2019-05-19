@@ -16,21 +16,17 @@ npm install servie-mount --save
 ## Usage
 
 ```ts
-import { mount } from 'servie-mount'
-import { compose } from 'throwback'
-import { Response } from 'servie'
+import { mount } from "servie-mount";
+import { compose } from "throwback";
+import { Response } from "servie";
 
 const subapp = compose([
-  function () {
-    return new Response({
-      body: 'hello world'
-    })
+  function() {
+    return new Response("hello world");
   }
-])
+]);
 
-const app = compose([
-  mount('/hello', subapp)
-])
+const app = compose([mount("/hello", subapp)]);
 ```
 
 ## TypeScript
