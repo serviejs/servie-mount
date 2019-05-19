@@ -1,7 +1,7 @@
 import debug = require("debug");
 import pathToRegexp = require("path-to-regexp");
 import { Request, Response } from "servie";
-import { format, parse } from "url";
+import { getURL } from "servie-url";
 
 const log = debug("servie-mount");
 
@@ -31,20 +31,16 @@ export function mount<T extends Request, U extends Response>(
   log(`mount ${prefix} -> ${re}`);
 
   return function(req: T & Partial<MountRequest>, next: () => Promise<U>) {
-    const Url = parse(req.url);
-    if (!Url.pathname) return next();
-
-    const match = re.exec(Url.pathname);
+    const url = getURL(req);
+    const match = re.exec(url.pathname);
     if (!match) return next();
 
     const prevUrl = req.url;
     const prevMountPath = req[mountPath];
 
-    req.url = format({
-      ...Url,
-      path: undefined,
-      pathname: Url.pathname.substr(match[0].length) || "/"
-    });
+    req.url = `${
+      prevUrl.startsWith(url.protocol) ? url.origin : ""
+    }${url.pathname.substr(match[0].length) || "/"}${url.search}${url.hash}`;
 
     // Set mounted parameters on request.
     const mountReq = Object.assign(req, {
