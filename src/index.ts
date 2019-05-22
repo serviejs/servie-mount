@@ -1,6 +1,6 @@
 import debug = require("debug");
 import pathToRegexp = require("path-to-regexp");
-import { Request, Response } from "servie";
+import { CommonRequest, CommonResponse } from "servie/dist/common";
 import { getURL } from "servie-url";
 
 const log = debug("servie-mount");
@@ -17,7 +17,7 @@ export interface Options {
   sensitive?: boolean;
 }
 
-export function mount<T extends Request, U extends Response>(
+export function mount<T extends CommonRequest, U extends CommonResponse>(
   prefix: pathToRegexp.Path,
   fn: (req: T & MountRequest, done: () => Promise<U>) => Promise<U>,
   options: Options = {}
