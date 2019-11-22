@@ -1,6 +1,6 @@
 {
   "name": "servie-mount",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "Mount Servie middleware on a prefix",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
