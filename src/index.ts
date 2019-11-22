@@ -25,7 +25,7 @@ export function mount<
   P extends object = object
 >(
   prefix: Path,
-  fn: (req: T & MountRequest, done: () => Promise<U>) => Promise<U>,
+  fn: (req: T & MountRequest, done: () => Promise<U>) => U | Promise<U>,
   options?: Options
 ) {
   const check = match<P>(prefix, {
@@ -37,7 +37,10 @@ export function mount<
 
   log(`mount ${prefix}`);
 
-  return function(req: T & Partial<MountRequest<P>>, next: () => Promise<U>) {
+  return async function mountMiddleware(
+    req: T & Partial<MountRequest<P>>,
+    next: () => Promise<U>
+  ) {
     const url = getURL(req);
     const match = check(url.pathname);
     if (!match) return next();
@@ -63,7 +66,7 @@ export function mount<
 
     debug(`enter ${prevUrl} -> ${req.url}`);
 
-    return fn(mountReq, function() {
+    return fn(mountReq, () => {
       debug(`leave ${prevUrl} <- ${req.url}`);
       req.url = prevUrl;
       req[path] = prevMountPath;
