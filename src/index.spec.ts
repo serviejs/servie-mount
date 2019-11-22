@@ -1,12 +1,13 @@
 import { compose } from "throwback";
 import { finalhandler } from "servie-finalhandler";
 import { Request, Response } from "servie/dist/node";
-import { mount, mountPath, MountRequest, originalUrl } from "./index";
+import { mount, path, MountRequest, originalUrl, params } from "./index";
 
 describe("servie-mount", () => {
   it("should rewrite the mounted path", () => {
     const urls: string[] = [];
-    const mountPaths: Array<string[]> = [];
+    const mountPaths: Array<string> = [];
+    const mountParams: Array<object> = [];
     const originalUrls: Array<string> = [];
 
     function fn(
@@ -22,14 +23,15 @@ describe("servie-mount", () => {
       next: () => Promise<Response>
     ): Promise<Response> {
       urls.push(req.url);
-      mountPaths.push(req[mountPath]);
+      mountPaths.push(req[path]);
+      mountParams.push(req[params]);
       originalUrls.push(req[originalUrl]);
       return next();
     }
 
     const app = compose([
       fn,
-      mount("/test", compose([mountedFn, mount("/path", mountedFn)])),
+      mount("/test", compose([mountedFn, mount("/:id", mountedFn)])),
       fn
     ]);
 
@@ -43,7 +45,9 @@ describe("servie-mount", () => {
         "/test/path?test=true"
       ]);
 
-      expect(mountPaths).toEqual([["/test"], ["/path"]]);
+      expect(mountPaths).toEqual(["/test", "/path"]);
+
+      expect(mountParams).toEqual([{}, { id: "path" }]);
 
       expect(originalUrls).toEqual([
         "/test/path?test=true",

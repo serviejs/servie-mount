@@ -1,59 +1,73 @@
 import debug = require("debug");
-import pathToRegexp = require("path-to-regexp");
+import { match, Path } from "path-to-regexp";
 import { CommonRequest, CommonResponse } from "servie/dist/common";
 import { getURL } from "servie-url";
 
 const log = debug("servie-mount");
 
-export const mountPath = Symbol("mountPath");
+export const path = Symbol("path");
+export const params = Symbol("params");
 export const originalUrl = Symbol("originalUrl");
 
-export interface MountRequest {
+export interface MountRequest<P extends object = object> {
   [originalUrl]: string;
-  [mountPath]: string[];
+  [path]: string;
+  [params]: P;
 }
 
-export interface Options {
-  sensitive?: boolean;
-}
+export type Options = Partial<
+  Record<"sensitive" | "strict" | "start" | "end", boolean>
+>;
 
-export function mount<T extends CommonRequest, U extends CommonResponse>(
-  prefix: pathToRegexp.Path,
+export function mount<
+  T extends CommonRequest,
+  U extends CommonResponse,
+  P extends object = object
+>(
+  prefix: Path,
   fn: (req: T & MountRequest, done: () => Promise<U>) => Promise<U>,
-  options: Options = {}
+  options?: Options
 ) {
-  const keys: pathToRegexp.Key[] = [];
-  const re = pathToRegexp(prefix, keys, {
+  const check = match<P>(prefix, {
     end: false,
-    sensitive: options.sensitive
+    encode: encodeURI,
+    decode: decodeURIComponent,
+    ...options
   });
 
-  log(`mount ${prefix} -> ${re}`);
+  log(`mount ${prefix}`);
 
-  return function(req: T & Partial<MountRequest>, next: () => Promise<U>) {
+  return function(req: T & Partial<MountRequest<P>>, next: () => Promise<U>) {
     const url = getURL(req);
-    const match = re.exec(url.pathname);
+    const match = check(url.pathname);
     if (!match) return next();
 
     const prevUrl = req.url;
-    const prevMountPath = req[mountPath];
+    const prevMountPath = req[path];
+    const prevParams = req[params];
 
-    req.url = `${
-      prevUrl.startsWith(url.protocol) ? url.origin : ""
-    }${url.pathname.substr(match[0].length) || "/"}${url.search}${url.hash}`;
+    const origin = prevUrl.startsWith(url.protocol) ? url.origin : "";
+    const pathname =
+      url.pathname.substr(0, match.index) +
+        url.pathname.substr(match.path.length) || "/";
+
+    // Update `url` to mounted pathname.
+    req.url = `${origin}${pathname}${url.search}${url.hash}`;
 
     // Set mounted parameters on request.
     const mountReq = Object.assign(req, {
-      [mountPath]: Array.from(match),
+      [path]: match.path,
+      [params]: match.params,
       [originalUrl]: req[originalUrl] || prevUrl
     });
 
     debug(`enter ${prevUrl} -> ${req.url}`);
 
     return fn(mountReq, function() {
-      debug(`leave ${prevUrl} -> ${req.url}`);
+      debug(`leave ${prevUrl} <- ${req.url}`);
       req.url = prevUrl;
-      req[mountPath] = prevMountPath;
+      req[path] = prevMountPath;
+      req[params] = prevParams;
       return next();
     });
   };
